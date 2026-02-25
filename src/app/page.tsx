@@ -15,25 +15,6 @@ export default function Home() {
         .grain { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); }
       `}</style>
 
-      {/* Nav */}
-      <nav className="font-body flex items-center justify-between px-5 md:px-10 py-6 max-w-7xl mx-auto">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-green-700 rounded-md flex items-center justify-center">
-            <span className="text-white text-sm font-bold tracking-tight">R</span>
-          </div>
-          <span className="text-lg font-bold tracking-tight text-gray-900">Replate</span>
-        </div>
-        <div className="hidden md:flex items-center gap-9 text-[13px] text-gray-500 font-medium">
-          <a href="#problem" className="hover:text-gray-900 transition">Problem</a>
-          <a href="#approach" className="hover:text-gray-900 transition">Approach</a>
-          <a href="#how" className="hover:text-gray-900 transition">How It Works</a>
-          <a href="#impact" className="hover:text-gray-900 transition">Impact</a>
-        </div>
-        <Link href="/onboarding" className="font-body bg-gray-900 text-white text-[13px] px-5 py-2.5 rounded-md font-semibold hover:bg-gray-800 transition">
-          Get Started
-        </Link>
-      </nav>
-
       {/* Hero */}
       <section className="relative px-5 md:px-10 pt-20 md:pt-32 pb-16 md:pb-24 max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-5 gap-12 lg:gap-8 items-start">
