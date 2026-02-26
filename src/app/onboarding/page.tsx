@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
+  const router = useRouter();
   const [form, setForm] = useState({
     ownerName: "", email: "", phone: "",
     restaurantName: "", city: "", state: "",
@@ -28,6 +30,19 @@ export default function Onboarding() {
         .font-serif { font-family: 'DM Serif Display', serif; }
         .font-body { font-family: 'DM Sans', sans-serif; }
       `}</style>
+
+      {/* Nav */}
+      <nav className="font-body flex items-center justify-between px-5 md:px-10 py-6 max-w-7xl mx-auto">
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="w-9 h-9 bg-green-700 rounded-md flex items-center justify-center">
+            <span className="text-white text-sm font-bold tracking-tight">R</span>
+          </div>
+          <span className="text-lg font-bold tracking-tight">Replate</span>
+        </Link>
+        <Link href="/" className="text-[13px] text-gray-400 hover:text-gray-700 font-medium transition">
+          ← Home
+        </Link>
+      </nav>
 
       <div className="max-w-6xl mx-auto px-5 md:px-10 py-6 md:py-16">
         <div className="grid lg:grid-cols-5 gap-10 lg:gap-20">
@@ -267,7 +282,7 @@ export default function Onboarding() {
                     Next
                   </button>
                 ) : (
-                  <button onClick={() => alert("Submitted! (Demo)")} className="font-body bg-green-700 text-white px-7 py-3 rounded-md text-sm font-semibold hover:bg-green-800 transition">
+                  <button onClick={() => router.push("/dashboard")} className="font-body bg-green-700 text-white px-7 py-3 rounded-md text-sm font-semibold hover:bg-green-800 transition">
                     Build My Dashboard →
                   </button>
                 )}

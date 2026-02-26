@@ -15,6 +15,8 @@ export default function Home() {
         .grain { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); }
       `}</style>
 
+
+
       {/* Hero */}
       <section className="relative px-5 md:px-10 pt-20 md:pt-32 pb-16 md:pb-24 max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-5 gap-12 lg:gap-8 items-start">
@@ -174,9 +176,14 @@ export default function Home() {
           <p className="font-body text-green-200/70 text-sm md:text-base mb-10 max-w-lg mx-auto">
             Join Replate and turn your restaurant&apos;s biggest cost into revenue, community impact, and a brand people trust.
           </p>
-          <Link href="/onboarding" className="font-body inline-block bg-white text-green-800 px-9 py-4 rounded-md text-sm font-bold hover:bg-green-50 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
-            Get Started Free →
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/onboarding" className="font-body inline-block bg-white text-green-800 px-9 py-4 rounded-md text-sm font-bold hover:bg-green-50 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+              Get Started Free →
+            </Link>
+            <Link href="/login" className="font-body inline-block bg-white/10 backdrop-blur-sm border border-white/20 text-white px-9 py-4 rounded-md text-sm font-bold hover:bg-white/20 hover:-translate-y-0.5 transition-all duration-300">
+              Log In
+            </Link>
+          </div>
         </div>
       </section>
 
