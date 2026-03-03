@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
 
+import { useState } from "react";
+
 // ── All data lives here. Replace with API calls when backend is ready. ──
 
 interface SurplusItem {
@@ -33,19 +35,19 @@ interface Forecast {
 function useDashboardData() {
   // Top-level stats 
   const stats = {
-    foodSaved: 0,          // lbs
+    foodSaved: 0,           // lbs
     mealsProvided: 0,       // count
     co2Reduced: 0,          // kg
   };
 
   // Sustainability score 
   const sustainability = {
-    score: 0,               // out of 100???
+    score: 0,               // out of 100
     changeFromLastMonth: 0, // +/- points
   };
 
   // Week-over-week waste change 
-  const weeklyChange = 0;   // percentage, negative = improvement (LMK if u agree)
+  const weeklyChange = 0; 
 
   // Today's surplus items 
   const surplusItems: SurplusItem[] = [];
@@ -103,7 +105,28 @@ function getProgressColor(pct: number): string {
 
 export default function Dashboard() {
   const router = useRouter();
+
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState("");
+
   const { stats, sustainability, weeklyChange, surplusItems, donations, weeklyWaste, forecasts } = useDashboardData();
+  
+   useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 500);
+
+    if (localStorage.getItem("replate_onboarding_just_finished") === "1") {
+      localStorage.removeItem("replate_onboarding_just_finished");
+      setToast("Dashboard created!");
+      const t2 = setTimeout(() => setToast(""), 2000);
+      return () => {
+        clearTimeout(t);
+        clearTimeout(t2);
+      };
+    }
+
+    return () => clearTimeout(t);
+  }, []);
+
 
   useEffect(() => {
     // TODO: Re-enable when Firebase auth is wired up
@@ -117,6 +140,24 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-[#f8f7f4] text-gray-900 selection:bg-green-200">
+      {toast && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md">
+          <div className="relative bg-black text-white rounded-xl shadow-2xl px-6 py-5 flex items-center justify-between">
+            
+            <div className="text-base font-semibold tracking-wide">
+              🎉 {toast}
+            </div>
+
+            <button
+              onClick={() => setToast("")}
+              className="ml-4 text-white/70 hover:text-white text-xl font-bold transition"
+            >
+              ×
+            </button>
+
+          </div>
+        </div>
+      )}
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap');
         .font-serif { font-family: 'DM Serif Display', serif; }
@@ -190,7 +231,7 @@ export default function Dashboard() {
       </section>
 
       {/* Stats Row */}
-      <section className="max-w-7xl mx-auto px-5 md:px-10 -mt-6 relative z-20">
+      <section className="max-w-7xl mx-auto mt-10 px-5 md:px-10 -mt-6 relative z-20">
         <div className="animate-fade-up delay-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 md:p-8">
           <p className="font-body text-gray-400 text-xs font-bold uppercase tracking-widest mb-5 text-center">
             Your Impact
@@ -248,11 +289,11 @@ export default function Dashboard() {
       </section>
 
       {/* Dashboard Grid */}
-      <section className="max-w-7xl mx-auto px-5 md:px-10 py-10 md:py-14">
+      <section className="max-w-7xl mx-auto -mt-10 px-5 md:px-10 py-10 md:py-14">
         <div className="grid md:grid-cols-3 gap-4">
 
           {/* Today's Surplus */}
-          <div className="animate-fade-up delay-4 md:col-span-2 bg-white border border-gray-100 rounded-xl p-6">
+          <div className="animate-fade-up delay-4 md:col-span-2 bg-white border border-gray-100 rounded-xl p-6 shadow-sm p-6 md:p-8">
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h3 className="font-body text-sm font-bold text-gray-900">Today&apos;s Surplus</h3>
@@ -316,7 +357,7 @@ export default function Dashboard() {
           {/* Right Column */}
           <div className="animate-fade-up delay-5 space-y-4">
             {/* Quick Actions */}
-            <div className="bg-white border border-gray-100 rounded-xl p-6">
+            <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm p-6 md:p-8">
               <h3 className="font-body text-sm font-bold text-gray-900 mb-4">Quick Actions</h3>
               <div className="space-y-2.5">
                 {[
@@ -340,8 +381,8 @@ export default function Dashboard() {
             </div>
 
             {/* Sustainability Score */}
-            <div className="grain bg-green-700 rounded-xl p-6 text-white">
-              <p className="font-body text-xs font-bold uppercase tracking-widest text-green-300 mb-2">Your Score</p>
+            <div className="grain bg-green-700 rounded-xl p-6 text-white ">
+              <p className="font-body text-xs font-bold uppercase tracking-widest text-green-300 mb-2 ">Your Score</p>
               <div className="flex items-end gap-2 mb-1">
                 <span className="font-serif text-4xl leading-none">{sustainability.score}</span>
                 <span className="font-body text-sm text-green-200/60 mb-1">/100</span>
@@ -363,7 +404,7 @@ export default function Dashboard() {
         <div className="grid md:grid-cols-3 gap-4 mt-4">
 
           {/* Recent Donations */}
-          <div className="animate-fade-up delay-6 bg-white border border-gray-100 rounded-xl p-6">
+          <div className="animate-fade-up delay-6 bg-white border border-gray-100 rounded-xl p-6 shadow-sm p-6 md:p-8">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-body text-sm font-bold text-gray-900">Recent Donations</h3>
               {donations.length > 0 && (
@@ -400,7 +441,7 @@ export default function Dashboard() {
           </div>
 
           {/* Weekly Waste Trend */}
-          <div className="animate-fade-up delay-7 bg-white border border-gray-100 rounded-xl p-6">
+          <div className="animate-fade-up delay-7 bg-white border border-gray-100 rounded-xl p-6 shadow-sm p-6 md:p-8">
             <h3 className="font-body text-sm font-bold text-gray-900 mb-1">Weekly Waste Trend</h3>
             <p className="font-body text-xs text-gray-400 mb-5">Last 7 days (lbs wasted)</p>
             <div className="flex items-end gap-2 h-32">
@@ -425,7 +466,7 @@ export default function Dashboard() {
           </div>
 
           {/* AI Forecast */}
-          <div className="animate-fade-up delay-8 bg-white border border-gray-100 rounded-xl p-6">
+          <div className="animate-fade-up delay-8 bg-white border border-gray-100 rounded-xl p-6 shadow-sm p-6 md:p-8">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-6 h-6 bg-amber-50 rounded-md flex items-center justify-center">
                 <span className="text-xs">🧠</span>
@@ -469,7 +510,7 @@ export default function Dashboard() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-100 text-xs font-body px-5 md:px-10 py-6">
+      <footer className="bg-white -mt-5 border-t border-gray-100 text-xs font-body px-5 md:px-10 py-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 bg-green-700 rounded flex items-center justify-center">

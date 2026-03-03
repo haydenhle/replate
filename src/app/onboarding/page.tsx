@@ -23,6 +23,14 @@ export default function Onboarding() {
   const inp = "w-full bg-transparent border border-gray-200 rounded-md px-4 py-3 text-sm font-body text-gray-900 placeholder:text-gray-300 focus:outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700/20 transition";
   const sel = "w-full bg-white border border-gray-200 rounded-md px-4 py-3 text-sm font-body text-gray-900 focus:outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700/20 transition appearance-none";
 
+  const stepValid = () => {
+    if (step === 1) return form.ownerName.trim() && form.email.trim();
+    if (step === 2) return form.restaurantName.trim() && form.city.trim();
+    if (step === 3) return form.estimatedWastePercent.trim();
+    if (step === 4) return form.goals.length > 0;
+    return true;
+  };
+
   return (
     <main className="min-h-screen bg-[#f8f7f4] text-gray-900 selection:bg-green-200">
       <style jsx global>{`
@@ -57,7 +65,7 @@ export default function Onboarding() {
                 Three minutes. We&apos;ll build your dashboard from what you tell us here.
               </p>
 
-              {/* Step indicator — minimal */}
+              {/* Step indicator*/}
               <div className="font-body text-sm space-y-4">
                 {["You", "Restaurant", "Waste", "Goals"].map((label, i) => (
                   <div key={i} className="flex items-center gap-3">
@@ -278,11 +286,33 @@ export default function Onboarding() {
                   </button>
                 ) : <div />}
                 {step < 4 ? (
-                  <button onClick={() => setStep((s) => s + 1)} className="font-body bg-gray-900 text-white px-7 py-3 rounded-md text-sm font-semibold hover:bg-gray-800 transition">
+                  <button
+                    onClick={() => setStep((s) => s + 1)}
+                    disabled={!stepValid()}
+                    className={`font-body px-7 py-3 rounded-md text-sm font-semibold transition ${
+                      stepValid()
+                        ? "bg-gray-900 text-white hover:bg-gray-800"
+                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    }`}
+                  >
                     Next
                   </button>
                 ) : (
-                  <button onClick={() => router.push("/dashboard")} className="font-body bg-green-700 text-white px-7 py-3 rounded-md text-sm font-semibold hover:bg-green-800 transition">
+                  <button
+                    onClick={() => {
+                      // Save basics for prototype login
+                      localStorage.setItem("replate_user_email", form.email.trim());
+                      localStorage.setItem("replate_user_pass", "demo123");
+                      localStorage.setItem("replate_owner_name", form.ownerName.trim());
+                      localStorage.setItem("replate_restaurant_name", form.restaurantName.trim());
+                      localStorage.setItem("replate_city", form.city.trim());
+
+                      // Success feedback 
+                      localStorage.setItem("replate_onboarding_just_finished", "1");
+                      router.push("/dashboard");
+                    }}
+                    className="..."
+                  >
                     Build My Dashboard →
                   </button>
                 )}

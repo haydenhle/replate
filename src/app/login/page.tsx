@@ -8,9 +8,38 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setInfo("");
+
+    // basic checks
+    if (!email.includes("@")) {
+      setError("Invalid email address.");
+      return;
+    }
+    if (password.length < 4) {
+      setError("Password is too short.");
+      return;
+    }
+
+    // only allow login if onboarding saved a user
+    const savedEmail = localStorage.getItem("replate_user_email") || "";
+    const savedPass = localStorage.getItem("replate_user_pass") || "";
+
+    if (!savedEmail) {
+      setError("No account found. Please complete onboarding first.");
+      return;
+    }
+
+    if (email !== savedEmail || password !== savedPass) {
+      setError("Incorrect email or password.");
+      return;
+    }
+
     router.push("/dashboard");
   };
 
@@ -116,9 +145,9 @@ export default function Login() {
                   <label className="font-body text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     Password
                   </label>
-                  <a href="#" className="font-body text-xs text-green-700 hover:underline font-medium">
+                  <Link href="/resetpassword" className="font-body text-xs text-green-700 hover:underline font-medium">
                     Forgot password?
-                  </a>
+                  </Link>
                 </div>
                 <div className="relative">
                   <input
@@ -147,6 +176,11 @@ export default function Login() {
                   Log In
                 </button>
               </div>
+              {error && (
+                <p className="font-body text-sm text-red-600 pt-2 text-center">
+                  {error}
+                </p>
+              )}
             </form>
 
             {/* Divider */}
@@ -158,7 +192,11 @@ export default function Login() {
 
             {/* Social logins */}
             <div className="animate-fade-up delay-3 flex gap-3">
-              <button className="font-body flex-1 flex items-center justify-center gap-2 border border-gray-200 rounded-lg py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200">
+              <button
+                type="button"
+                onClick={() => setInfo("Google sign-in is not wired yet (prototype).")}
+                className="font-body flex-1 flex items-center justify-center gap-2 border border-gray-200 rounded-lg py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+              >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
                   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -167,14 +205,22 @@ export default function Login() {
                 </svg>
                 Google
               </button>
-              <button className="font-body flex-1 flex items-center justify-center gap-2 border border-gray-200 rounded-lg py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200">
+              <button
+                type="button"
+                onClick={() => setInfo("Apple sign-in is not wired yet (prototype).")}
+                className="font-body flex-1 flex items-center justify-center gap-2 border border-gray-200 rounded-lg py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+              >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M16.365 1.43c0 1.14-.493 2.27-1.177 3.08-.744.9-1.99 1.57-2.987 1.57-.18 0-.36-.02-.53-.06-.01-.18-.04-.39-.04-.59 0-1.15.572-2.27 1.206-2.98.804-.94 2.142-1.64 3.248-1.68.03.21.06.43.06.66zm4.565 17.7c-.413.96-1.005 1.86-1.705 2.58-.797.82-1.62 1.29-2.654 1.29-1.03 0-1.78-.62-2.94-.62s-1.97.62-2.93.66c-.96.03-1.74-.52-2.63-1.37C6.02 19.58 4.56 16.18 4.56 12.52c0-3.67 2.38-5.52 4.51-5.58 1.12-.03 2.13.73 2.85.73.71 0 1.93-.87 3.39-.76.46.02 2.07.18 3.13 1.51-.1.06-1.94 1.15-1.94 3.33 0 2.66 2.3 3.56 2.37 3.58-.02.08-.37 1.32-1.27 2.6z"/>
                 </svg>
                 Apple
               </button>
             </div>
-
+            {info && (
+              <p className="font-body text-sm text-gray-600 pt-3 text-center">
+                {info}
+              </p>
+            )}
             <p className="animate-fade-up delay-3 font-body text-center text-sm text-gray-400 mt-8">
               Don&apos;t have an account?{" "}
               <Link href="/onboarding" className="text-green-700 font-semibold hover:underline">
