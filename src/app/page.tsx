@@ -176,11 +176,11 @@ export default function Home() {
           <p className="font-body text-green-200/70 text-sm md:text-base mb-10 max-w-lg mx-auto">
             Join Replate and turn your restaurant&apos;s biggest cost into revenue, community impact, and a brand people trust.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center gap-10">
             <Link href="/onboarding" className="font-body inline-block bg-white text-green-800 px-9 py-4 rounded-md text-sm font-bold hover:bg-green-50 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
-              Get Started Free →
+              Get Started Free
             </Link>
-            <Link href="/login" className="font-body inline-block bg-white/10 backdrop-blur-sm border border-white/20 text-white px-9 py-4 rounded-md text-sm font-bold hover:bg-white/20 hover:-translate-y-0.5 transition-all duration-300">
+            <Link href="/login" className="font-body inline-block bg-white text-green-700 px-9 py-4 rounded-md text-sm font-bold hover:bg-green-50 hover:-translate-y-0.5 transition-all duration-300 shadow-sm">
               Log In
             </Link>
           </div>
