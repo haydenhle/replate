@@ -34,7 +34,7 @@ export default function Navbar() {
     }`;
 
   return (
-    <nav className="w-full bg-white border-b border-gray-100 sticky top-0 z-50"
+    <nav className="w-full bg-white border-b border-gray-100 sticky top-0 z-9999"
          style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <div className="flex items-center justify-between px-5 md:px-10 py-4 max-w-7xl mx-auto">
 
