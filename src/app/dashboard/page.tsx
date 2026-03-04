@@ -220,11 +220,10 @@ export default function Dashboard() {
             <p className="font-body text-green-200/60 text-sm md:text-[15px] mb-6 max-w-lg mx-auto">
               AI-powered waste prediction &amp; redistribution for restaurants
             </p>
-            <Link
-              href="#"
-              className="font-body inline-block bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm font-semibold px-6 py-2.5 rounded-md hover:bg-white/20 transition-all duration-300"
-            >
-              For Restaurants
+            <Link href="/dashboard/log-waste">
+              <button className="bg-white text-green-700 font-semibold px-6 py-3 rounded-lg border border-green-600 hover:bg-green-50 transition">
+                For Restaurants
+              </button>
             </Link>
           </div>
         </div>
