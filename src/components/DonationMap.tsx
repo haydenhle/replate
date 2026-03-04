@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 
@@ -14,15 +14,60 @@ export type DonationLocation = {
   hours?: string;
 };
 
-function FitToBounds({ points }: { points: Array<{ lat: number; lng: number }> }) {
+function FitToBounds({
+  points,
+  enabled,
+}: {
+  points: Array<{ lat: number; lng: number }>;
+  enabled: boolean;
+}) {
   const map = useMap();
 
   useEffect(() => {
+    if (!enabled) return;
     if (points.length === 0) return;
 
     const bounds = L.latLngBounds(points.map((p) => [p.lat, p.lng]));
     map.fitBounds(bounds, { padding: [30, 30] });
-  }, [map, points]);
+  }, [map, points, enabled]);
+
+  return null;
+}
+
+function FocusSelected({
+  selectedId,
+  markerRefs,
+  locations,
+}: {
+  selectedId?: string | null;
+  markerRefs: React.MutableRefObject<Record<string, L.Marker | null>>;
+  locations: DonationLocation[];
+}) {
+  const map = useMap();
+
+	useEffect(() => {
+		if (!selectedId) return;
+
+		const marker = markerRefs.current[selectedId];
+		if (!marker) return;
+
+		const ll = marker.getLatLng();
+		const targetZoom = Math.max(map.getZoom(), 14);
+
+		// convert to pixel position
+		const point = map.project(ll, targetZoom);
+
+		// shift upward 
+		const shiftedPoint = point.subtract([0, 100]);
+
+		const shiftedLatLng = map.unproject(shiftedPoint, targetZoom);
+
+		map.flyTo(shiftedLatLng, targetZoom, { duration: 0.5 });
+
+		map.once("moveend", () => {
+			marker.openPopup();
+		});
+	}, [selectedId, map, markerRefs]);
 
   return null;
 }
@@ -31,12 +76,14 @@ export default function DonationsMap({
   locations,
   selectedId,
   onSelect,
+  center,
 }: {
   locations: DonationLocation[];
   selectedId?: string | null;
   onSelect: (loc: DonationLocation) => void;
+  center?: { lat: number; lng: number };
 }) {
-  // Fix default marker icons in Next.js (use CDN images)
+  // Fix default marker icons
   useEffect(() => {
     L.Icon.Default.mergeOptions({
       iconRetinaUrl:
@@ -46,13 +93,18 @@ export default function DonationsMap({
     });
   }, []);
 
+  const markerRefs = useRef<Record<string, L.Marker | null>>({});
+
   const points = useMemo(
     () => locations.map((l) => ({ lat: l.lat, lng: l.lng })),
     [locations]
   );
 
-  // Fallback center if locations missing
-  const fallbackCenter: [number, number] = [37.3541, -121.9552];
+  // Fallback center
+  const fallbackCenter: [number, number] = [
+    center?.lat ?? 37.3541,
+    center?.lng ?? -121.9552,
+  ];
 
   return (
     <div className="border border-gray-200 rounded-2xl overflow-hidden h-[320px] bg-gray-50">
@@ -62,19 +114,30 @@ export default function DonationsMap({
         scrollWheelZoom={true}
         className="h-full w-full"
       >
-        {/* OpenStreetMap tiles */}
         <TileLayer
           attribution='&copy; OpenStreetMap contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* Auto-fit map view to show all markers */}
-        {locations.length > 0 && <FitToBounds points={points} />}
+        {/* auto-fit when nothing is selected */}
+        {locations.length > 0 && (
+          <FitToBounds points={points} enabled={!selectedId} />
+        )}
+
+        {/* When dropdown changes selectedId, open popup */}
+        <FocusSelected
+          selectedId={selectedId}
+          markerRefs={markerRefs}
+          locations={locations}
+        />
 
         {locations.map((loc) => (
           <Marker
             key={loc.id}
             position={[loc.lat, loc.lng]}
+            ref={(ref) => {
+              markerRefs.current[loc.id] = ref;
+            }}
             eventHandlers={{
               click: () => onSelect(loc),
             }}
