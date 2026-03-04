@@ -1,4 +1,5 @@
 // src/app/dashboard/sustainability/page.tsx
+import GaugeClient from "./GaugeClient";
 
 export default function SustainabilityPage() {
   return (
@@ -38,9 +39,9 @@ export default function SustainabilityPage() {
             </span>
           </div>
 
-          {/* Gauge Placeholder */}
-          <div className="mt-8 border border-gray-200 rounded-2xl bg-gray-50 h-[300px] flex items-center justify-center text-gray-500 text-sm">
-            Reference Visual (Score Gauge)
+          {/* Gauge */}
+          <div className="mt-8 border border-gray-200 rounded-2xl bg-gray-50 p-6 flex items-center justify-center">
+            <GaugeClient />
           </div>
 
           {/* Small caption */}
