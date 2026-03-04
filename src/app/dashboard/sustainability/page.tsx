@@ -23,8 +23,8 @@ function categoryPillClasses(category: string) {
 export default function SustainabilityPage() {
 
   // demo score
-  const score = 65;
-
+  const score = 64;
+  // demo scores: 17, 23, 35, 41, 58, 64, 77, 89, 93
   const category = scoreCategory(score);
 
   return (

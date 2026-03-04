@@ -39,7 +39,7 @@ export default function Login() {
       setError("Incorrect email or password.");
       return;
     }
-
+    localStorage.setItem("replate_logged_in", "true");
     router.push("/dashboard");
   };
 

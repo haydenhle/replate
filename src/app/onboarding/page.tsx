@@ -308,6 +308,7 @@ export default function Onboarding() {
                       localStorage.setItem("replate_city", form.city.trim());
 
                       // Success feedback 
+                      localStorage.setItem("replate_logged_in", "true");
                       localStorage.setItem("replate_onboarding_just_finished", "1");
                       router.push("/dashboard");
                     }}

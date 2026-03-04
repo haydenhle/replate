@@ -125,8 +125,8 @@ export default function Home() {
         <h2 className="font-serif text-3xl md:text-[2.5rem] leading-tight mb-12 md:mb-16">Four steps to zero waste.</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { num: "01", title: "Log", desc: "Staff logs daily production and end-of-day waste through a dead-simple dashboard. Takes 2 minutes." },
-            { num: "02", title: "Analyze", desc: "Replate spots patterns you can't see — which items waste most, which days spike, what weather does to demand." },
+            { num: "01", title: "Log", desc: "Staff log daily production and end-of-day waste in a simple dashboard in under two minutes." },
+            { num: "02", title: "Analyze", desc: "Replate spots patterns you can't see: which items waste most, which days spike, what weather does to demand." },
             { num: "03", title: "Redistribute", desc: "Surplus gets matched to the right destination automatically. Shelters for bulk. Compost for plate waste." },
             { num: "04", title: "Improve", desc: "Prep recommendations get sharper every week. Waste drops. Margins grow. Your sustainability score goes up." },
           ].map((step, i) => (
