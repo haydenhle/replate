@@ -4,7 +4,7 @@ import SustainabilityGauge from "@/components/SustainabilityGauge";
 
 export default function GaugeClient() {
   // demo score for now
-  const score = 64;
+  const score = 60;
 
   return (
     <div className="flex justify-center">
