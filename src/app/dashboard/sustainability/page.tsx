@@ -1,7 +1,9 @@
 // src/app/dashboard/sustainability/page.tsx
 "use client";
 
+import { useState, useEffect } from "react";
 import GaugeClient from "./GaugeClient";
+import { getWasteLogs, getPickups } from "@/lib/localData";
 
 function scoreCategory(score: number) {
   if (score >= 78) return "Excellent";
@@ -21,10 +23,21 @@ function categoryPillClasses(category: string) {
 }
 
 export default function SustainabilityPage() {
+  const [ready, setReady] = useState(false);
+  useEffect(() => { setReady(true); }, []);
 
-  // demo score
-  const score = 64;
-  // demo scores: 17, 23, 35, 41, 58, 64, 77, 89, 93
+  const wasteLogs = ready ? getWasteLogs() : [];
+  const pickups = ready ? getPickups() : [];
+
+  const totalWaste = wasteLogs.reduce((sum, l) => sum + l.quantity, 0);
+  const foodSaved = pickups.length * 20;
+  const mealsProvided = Math.round(foodSaved / 1.2);
+  const co2Reduced = Math.round(foodSaved * 3.8);
+
+  // Same formula as overview dashboard
+  const rawScore = Math.min(100, Math.max(0, 50 + (pickups.length * 5) - Math.round(totalWaste * 0.3)));
+  const score = wasteLogs.length === 0 && pickups.length === 0 ? 0 : rawScore;
+
   const category = scoreCategory(score);
 
   return (
@@ -91,15 +104,21 @@ export default function SustainabilityPage() {
           <div className="mt-6 space-y-4">
             <InsightRow
               title="Waste trend"
-              text="Total waste reduced by X% over the last 6 months."
+              text={totalWaste > 0
+                ? `${totalWaste} lbs of waste logged across ${wasteLogs.length} entries.`
+                : "No waste logged yet. Start logging to track your trend."}
             />
             <InsightRow
               title="Donation impact"
-              text="Donations helped provide meals to local shelters and food banks."
+              text={pickups.length > 0
+                ? `${pickups.length} pickup${pickups.length !== 1 ? "s" : ""} scheduled — est. ${mealsProvided} meals provided and ${co2Reduced} kg CO₂ offset.`
+                : "No donations yet. Schedule a pickup to start redistributing surplus."}
             />
             <InsightRow
               title="Next improvement"
-              text="Log surplus by category to identify your biggest source of waste."
+              text={totalWaste > 50
+                ? "Waste is trending high. Try reducing prep on your most-wasted items."
+                : "Log surplus by category to identify your biggest source of waste."}
             />
           </div>
 
