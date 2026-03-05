@@ -389,7 +389,6 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h3 className="font-body text-sm font-bold text-gray-900">This Week&apos;s Surplus</h3>
-                <p className="font-body text-xs text-gray-400 mt-0.5">Surplus logged this week</p>
               </div>
               {weeklyChange !== 0 && (
                 <span className={`font-body text-xs px-3 py-1 rounded-full font-semibold ${
@@ -569,14 +568,14 @@ export default function Dashboard() {
               <div className="space-y-3">
                 {forecasts.map((f, i) => {
                   const styles = {
-                    warning: "bg-amber-50/50 border-amber-100 text-amber-700",
-                    positive: "bg-green-50/50 border-green-100 text-green-700",
-                    neutral: "bg-gray-50 border-gray-100 text-gray-600",
+                    warning: "bg-amber-50 border-amber-200 text-amber-800",
+                    positive: "bg-green-50/50 border-green-200 text-green-800",
+                    neutral: "bg-gray-50 border-gray-200 text-gray-700",
                   };
                   const descStyles = {
-                    warning: "text-amber-600/70",
-                    positive: "text-green-600/70",
-                    neutral: "text-gray-400",
+                    warning: "text-amber-700",
+                    positive: "text-green-700",
+                    neutral: "text-gray-600",
                   };
                   return (
                     <div key={i} className={`border rounded-lg px-4 py-3 ${styles[f.type]}`}>
