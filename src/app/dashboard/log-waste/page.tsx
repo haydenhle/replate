@@ -1,18 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   getWasteLogs,
   saveWasteLog,
   type WasteLog,
 } from "@/lib/localData";
 
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function formatDate(iso?: string) {
+  if (!iso) return "";
+  const d = new Date(iso + "T00:00:00");
+  return d.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" });
+}
+
+function getSavedBuffetNames(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem("buffetNames") || "[]";
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveBuffetName(name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  const existing = getSavedBuffetNames();
+  if (existing.some((n) => n.toLowerCase() === trimmed.toLowerCase())) return;
+  localStorage.setItem("buffetNames", JSON.stringify([trimmed, ...existing]));
+}
+
 export default function LogWastePage() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const [buffetName, setBuffetName] = useState("");
   const [foodItem, setFoodItem] = useState("");
   const [quantity, setQuantity] = useState("");
   const [wasteType, setWasteType] = useState("Buffet Surplus");
+  const [logDate, setLogDate] = useState(todayISO());
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  const [buffetNames, setBuffetNames] = useState<string[]>(() => getSavedBuffetNames());
 
   // Load from localStorage
   const [logs, setLogs] = useState<WasteLog[]>(() => getWasteLogs());
@@ -28,9 +67,11 @@ export default function LogWastePage() {
 
     const newLog: WasteLog = {
       id: Date.now().toString(),
+      buffetName: buffetName.trim() || undefined,
       foodItem,
       quantity: Number(quantity),
       wasteType,
+      date: logDate,
       time: new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
@@ -40,12 +81,20 @@ export default function LogWastePage() {
     // Save to localStorage
     saveWasteLog(newLog);
 
+    // Save buffet name for next time
+    if (buffetName.trim()) {
+      saveBuffetName(buffetName);
+      setBuffetNames(getSavedBuffetNames());
+    }
+
     // Reload from storage
     setLogs(getWasteLogs());
 
+    setBuffetName(buffetName.trim());
     setFoodItem("");
     setQuantity("");
     setWasteType("Buffet Surplus");
+    setLogDate(todayISO());
     setSuccess(true);
     setLoading(false);
   };
@@ -80,6 +129,26 @@ export default function LogWastePage() {
                 handleSubmit();
               }}
             >
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Buffet Name
+                </label>
+                <input
+                  type="text"
+                  list="buffet-names"
+                  value={buffetName}
+                  onChange={(e) => setBuffetName(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm
+                    focus:outline-none focus:ring-4 focus:ring-green-100 focus:border-green-700 transition"
+                  placeholder="Ex: Campus Buffet"
+                />
+                <datalist id="buffet-names">
+                  {mounted
+                    ? buffetNames.map((n) => <option key={n} value={n} />)
+                    : null}
+                </datalist>
+              </div>
+
               <div>
                 <label className="block text-sm font-semibold text-gray-800 mb-2">
                   Food Item
@@ -122,6 +191,19 @@ export default function LogWastePage() {
                   <option>Plate Waste</option>
                   <option>Spoilage</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={logDate}
+                  onChange={(e) => setLogDate(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm
+                    focus:outline-none focus:ring-4 focus:ring-green-100 focus:border-green-700 transition"
+                />
               </div>
 
               <div className="pt-2">
@@ -173,24 +255,35 @@ export default function LogWastePage() {
           <table className="w-full border border-gray-200 rounded-xl overflow-hidden text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="p-4 text-left border-b">Time</th>
-                <th className="p-4 text-left border-b">Food Item</th>
-                <th className="p-4 text-left border-b">Quantity</th>
-                <th className="p-4 text-left border-b">Type</th>
+                <th className="p-4 text-left border-b w-[220px]">Time</th>
+                <th className="p-4 text-left border-b w-[200px]">Buffet Name</th>
+                <th className="p-4 text-left border-b w-[200px]">Food Item</th>
+                <th className="p-4 text-left border-b w-[150px]">Quantity</th>
+                <th className="p-4 text-left border-b w-[200px]">Type</th>
               </tr>
             </thead>
 
             <tbody>
               {logs.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="p-6 text-center text-gray-500">
+                  <td colSpan={5} className="p-6 text-center text-gray-500">
                     No waste logged yet.
                   </td>
                 </tr>
               ) : (
                 logs.map((log) => (
                   <tr key={log.id} className="hover:bg-gray-50">
-                    <td className="p-4 border-b">{log.time}</td>
+                    <td className="p-4 border-b">
+                      {log.time}
+                      {log.date ? (
+                        <span className="text-gray-400"> · {formatDate(log.date)}</span>
+                      ) : null}
+                    </td>
+
+                    <td className="p-4 border-b text-gray-900">
+                      {log.buffetName ? log.buffetName : <span className="text-gray-400">—</span>}
+                    </td>
+
                     <td className="p-4 border-b">{log.foodItem}</td>
                     <td className="p-4 border-b">{log.quantity} lbs</td>
                     <td className="p-4 border-b">{log.wasteType}</td>

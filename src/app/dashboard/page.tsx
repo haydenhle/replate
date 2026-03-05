@@ -38,13 +38,14 @@ function useDashboardData() {
 
   useEffect(() => { setReady(true); }, []);
 
-  // Read from localStorage (same source as log-waste and donations pages)
+  // Read from localStorage
   const wasteLogs = ready ? getWasteLogs() : [];
   const pickups = ready ? getPickups() : [];
 
   // Compute stats from logged data
   const totalWaste = wasteLogs.reduce((sum, l) => sum + l.quantity, 0);
-  const foodSaved = pickups.length * 20; // ~20 lbs per pickup
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const foodSaved = pickups.length * 20; 
   const mealsProvided = Math.round(foodSaved / 1.2);
   const co2Reduced = Math.round(foodSaved * 3.8);
 
@@ -53,6 +54,31 @@ function useDashboardData() {
     mealsProvided,
     co2Reduced,
   };
+
+  function toLocalMidnight(iso: string) {
+    return new Date(iso + "T00:00:00");
+  }
+
+  // Monday as start of week
+  function startOfWeek(d: Date) {
+    const copy = new Date(d);
+    copy.setHours(0, 0, 0, 0);
+    const day = copy.getDay(); // Sun=0
+    const diff = day === 0 ? -6 : 1 - day;
+    copy.setDate(copy.getDate() + diff);
+    return copy;
+  }
+
+  const weekStart = startOfWeek(new Date());
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 7);
+
+  // Only logs from this week
+  const wasteLogsThisWeek = wasteLogs.filter((log) => {
+    const iso = log.date || todayISO;
+    const d = toLocalMidnight(iso);
+    return d >= weekStart && d < weekEnd;
+  });
 
   // Sustainability score: base 50, +5 per pickup, -0.3 per lb wasted
   const rawScore = Math.min(100, Math.max(0, 50 + (pickups.length * 5) - Math.round(totalWaste * 0.3)));
@@ -64,35 +90,46 @@ function useDashboardData() {
   // Week-over-week change (negative = improvement)
   const weeklyChange = wasteLogs.length >= 3 ? -Math.min(23, pickups.length * 5) : 0;
 
-  // Build surplus items from waste logs (aggregate by food item)
+  // Build surplus items from this week's waste logs (aggregate by food item)
   const itemMap: Record<string, { total: number; count: number }> = {};
-  wasteLogs.forEach((log) => {
+  wasteLogsThisWeek.forEach((log) => {
     if (!itemMap[log.foodItem]) itemMap[log.foodItem] = { total: 0, count: 0 };
     itemMap[log.foodItem].total += log.quantity;
     itemMap[log.foodItem].count += 1;
   });
-  // Convert to SurplusItem shape (prepped = total, sold = total - wasted estimate)
+
+
+  // Convert to SurplusItem shape 
+  // prepped = total, sold = total - wasted estimate
   const surplusItems: SurplusItem[] = Object.entries(itemMap).map(([item, data]) => ({
     item,
-    prepped: Math.round(data.total * 2.5), // estimate: prepped ~2.5x what was wasted
-    sold: Math.round(data.total * 1.5),     // estimate: sold ~1.5x what was wasted
+    prepped: Math.round(data.total * 2.5),
+    sold: Math.round(data.total * 1.5),
   }));
 
-  // Recent donations from pickups
+  // Recent donations from pickups 
   const donations: Donation[] = pickups.slice(0, 5).map((p) => ({
     org: p.partnerName,
     items: `Scheduled pickup`,
-    time: p.time,
+    time: p.date ? `${p.time} · ${formatDateShort(p.date)}` : p.time,
     status: p.status,
   }));
 
-  // Weekly waste data (distribute logs across days round-robin)
+  // Weekly waste data (this week only, based on each log's actual date)
   const weeklyWasteMap: Record<string, number> = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
   const dayKeys = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  wasteLogs.forEach((log, i) => { weeklyWasteMap[dayKeys[i % 7]] += log.quantity; });
-  const weeklyWaste: WasteDay[] = dayKeys.map((day) => ({ day, val: weeklyWasteMap[day] }));
 
-  // AI forecasts (generated from data once enough logs exist)
+  wasteLogsThisWeek.forEach((log) => {
+    const iso = log.date || todayISO;
+    const d = toLocalMidnight(iso);
+    const js = d.getDay(); // Sun=0..Sat=6
+    const idx = js === 0 ? 6 : js - 1; // Mon=0..Sun=6
+    weeklyWasteMap[dayKeys[idx]] += log.quantity;
+  });
+
+const weeklyWaste: WasteDay[] = dayKeys.map((day) => ({ day, val: weeklyWasteMap[day] }));
+  
+  // AI forecasts
   const forecasts: Forecast[] = [];
   if (wasteLogs.length >= 3) {
     const topItem = surplusItems.sort((a, b) => (b.prepped - b.sold) - (a.prepped - a.sold))[0];
@@ -126,6 +163,12 @@ function useDashboardData() {
 
 function formatNumber(n: number): string {
   return n.toLocaleString();
+}
+
+function formatDateShort(iso?: string): string {
+  if (!iso) return "";
+  const d = new Date(iso + "T00:00:00");
+  return d.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
 }
 
 function getSurplusPct(item: SurplusItem): number {
@@ -254,7 +297,7 @@ export default function Dashboard() {
 
 
       {/* Hero Banner */}
-      <section className="animate-fade-up relative overflow-hidden">
+      <section className="animate-fade-up relative overflow-hidden -mt-10">
         <div className="grain bg-green-700 relative">
           <div className="absolute inset-0 opacity-[0.04]">
             <div className="absolute top-4 left-[10%] w-32 h-32 border border-white rounded-full" />
@@ -345,8 +388,8 @@ export default function Dashboard() {
           <div className="animate-fade-up delay-4 md:col-span-2 bg-white border border-gray-100 rounded-xl p-6 shadow-sm p-6 md:p-8">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h3 className="font-body text-sm font-bold text-gray-900">Today&apos;s Surplus</h3>
-                <p className="font-body text-xs text-gray-400 mt-0.5">Real-time waste tracking</p>
+                <h3 className="font-body text-sm font-bold text-gray-900">This Week&apos;s Surplus</h3>
+                <p className="font-body text-xs text-gray-400 mt-0.5">Surplus logged this week</p>
               </div>
               {weeklyChange !== 0 && (
                 <span className={`font-body text-xs px-3 py-1 rounded-full font-semibold ${
@@ -456,9 +499,9 @@ export default function Dashboard() {
           <div className="animate-fade-up delay-6 bg-white border border-gray-100 rounded-xl p-6 shadow-sm p-6 md:p-8">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-body text-sm font-bold text-gray-900">Recent Donations</h3>
-              {donations.length > 0 && (
+              {/* {donations.length > 0 && (
                 <a href="#" className="font-body text-xs text-green-700 font-semibold hover:underline">View All</a>
-              )}
+              )} */}
             </div>
             {donations.length > 0 ? (
               <div className="space-y-3">
@@ -559,7 +602,7 @@ export default function Dashboard() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-white -mt-5 border-t border-gray-100 text-xs font-body px-5 md:px-10 py-6">
+      <footer className="bg-white -mt-5 border-t border-gray-100 text-xs font-body px-5 md:px-10 py-6 ">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 bg-green-700 rounded flex items-center justify-center">

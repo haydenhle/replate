@@ -107,11 +107,10 @@ export default function DonationsMap({
     center?.lng ?? -121.9552,
   ];
 
-  // Unique key forces fresh map instance on remount (fixes hot reload)
   const [mapKey] = useState(() => Date.now());
 
   return (
-    <div className="border border-gray-200 rounded-2xl overflow-hidden h-[320px] bg-gray-50">
+    <div className="border border-gray-200 rounded-2xl overflow-hidden h-full min-h-[440px] bg-gray-50">
       <MapContainer
         key={mapKey}
         center={fallbackCenter}

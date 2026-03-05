@@ -1,15 +1,20 @@
 export type WasteLog = {
   id: string;
+  buffetName?: string;
   foodItem: string;
   quantity: number;
   wasteType: string;
   time: string;
+  date?: string;
 };
 
 export type Pickup = {
   id: string;
   partnerName: string;
+  buffetLocation?: string;
+  itemDescription?: string;
   time: string;
+  date?: string;
   status: "Scheduled";
 };
 

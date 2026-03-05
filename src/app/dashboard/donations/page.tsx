@@ -1,21 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import type { DonationLocation } from "../../../components/DonationMap";
-import { savePickup, getPickups } from "@/lib/localData";
+import { savePickup, getPickups, type Pickup } from "@/lib/localData";
 
 const DonationsMap = dynamic(
   () => import("../../../components/DonationMap"),
   { ssr: false }
 );
 
-type Pickup = {
-  id: string;
-  partnerName: string;
-  time: string;
-  status: "Scheduled";
-};
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function formatDate(iso?: string) {
+  if (!iso) return "";
+  const d = new Date(iso + "T00:00:00");
+  return d.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" });
+}
 
 export default function DonationsPage() {
   const locations = useMemo<DonationLocation[]>(
@@ -80,16 +83,27 @@ export default function DonationsPage() {
 
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   const [foodType, setFoodType] = useState("");
+  const [buffetLocation, setBuffetLocation] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem("buffetLocation") || "";
+  });
   const [item, setItem] = useState("");
+  const [pickupDate, setPickupDate] = useState(todayISO());
 
   // Load from localStorage
-  const [pickups, setPickups] = useState<Pickup[]>(() => getPickups());
+  const [pickups, setPickups] = useState<Pickup[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setPickups(getPickups());
+    setMounted(true);
+  }, []);
 
   const selectedPartner =
     locations.find((l) => l.id === selectedPartnerId) || null;
 
   const handleSchedulePickup = () => {
-    if (!selectedPartner || !foodType || !item) {
+    if (!selectedPartner || !foodType || !item || !buffetLocation.trim()) {
       alert("Please complete all fields.");
       return;
     }
@@ -97,6 +111,9 @@ export default function DonationsPage() {
     const newPickup: Pickup = {
       id: Date.now().toString(),
       partnerName: selectedPartner.name,
+      buffetLocation: buffetLocation.trim(),
+      itemDescription: item.trim(),
+      date: pickupDate,
       time: new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
@@ -112,7 +129,9 @@ export default function DonationsPage() {
 
     setSelectedPartnerId(null);
     setFoodType("");
+    localStorage.setItem("buffetLocation", buffetLocation.trim());
     setItem("");
+    setPickupDate(todayISO());
   };
 
   return (
@@ -129,25 +148,29 @@ export default function DonationsPage() {
       </div>
 
       {/* Locations + Form */}
-      <div className="mt-10 bg-white border border-gray-200 rounded-2xl shadow-sm p-8">
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
-          <div className="lg:col-span-2">
-            <DonationsMap
-              locations={locations}
-              selectedId={selectedPartnerId}
-              onSelect={(loc) => setSelectedPartnerId(loc.id)}
-            />
+      <div className="mt-4 bg-white border border-gray-200 rounded-2xl shadow-sm px-8 pt-0 pb-8">
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-10 items-stretch">
+          <div className="lg:col-span-2 h-full">
+            {mounted ? (
+              <DonationsMap
+                locations={locations}
+                selectedId={selectedPartnerId}
+                onSelect={(loc) => setSelectedPartnerId(loc.id)}
+              />
+            ) : (
+              <div className="border border-gray-200 rounded-2xl bg-gray-50 h-full min-h-[440px]" />
+            )}
           </div>
 
           <div className="lg:col-span-1">
-            <div className="border border-gray-200 rounded-2xl p-6">
+            <div className="border border-gray-200 rounded-2xl p-6 h-full">
               <h3 className="text-lg font-bold text-gray-900">
                 Schedule Pickup
               </h3>
 
               <div className="mt-5 space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-800 mb-1.5">Location</label>
+                  <label className="block text-sm font-semibold text-gray-800 mb-1.5">Donation Location</label>
                   <select
                     value={selectedPartnerId ?? ""}
                     onChange={(e) => setSelectedPartnerId(e.target.value || null)}
@@ -183,12 +206,35 @@ export default function DonationsPage() {
                 </div>
 
                 <div>
+                  <label className="block text-sm font-semibold text-gray-800 mb-1.5">Buffet Location</label>
+                  <input
+                    value={buffetLocation}
+                    onChange={(e) => setBuffetLocation(e.target.value)}
+                    placeholder="Ex: 500 El Camino Real, Santa Clara"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-100 focus:border-green-700 transition"
+                  />
+                  <p className="mt-1 px-4 text-xs text-gray-400">
+                    Only used to coordinate volunteer pickup.
+                  </p>
+                </div>
+
+                <div>
                   <label className="block text-sm font-semibold text-gray-800 mb-1.5">Item Description</label>
                   <input
                     value={item}
                     onChange={(e) => setItem(e.target.value)}
                     placeholder="Ex: 20 lbs pasta, soup containers"
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-100 focus:border-green-700 transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-800 mb-1.5">Date</label>
+                  <input
+                    type="date"
+                    value={pickupDate}
+                    onChange={(e) => setPickupDate(e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-100 focus:border-green-700 transition"
                   />
                 </div>
 
@@ -220,39 +266,51 @@ export default function DonationsPage() {
           <table className="w-full border border-gray-200 rounded-xl overflow-hidden text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="p-4 text-left font-semibold text-gray-800 border-b">
-                  Pickup Time
-                </th>
-                <th className="p-4 text-left font-semibold text-gray-800 border-b">
-                  Food Bank
-                </th>
-                <th className="p-4 text-left font-semibold text-gray-800 border-b">
-                  Status
-                </th>
+                <th className="p-4 text-left font-semibold text-gray-800 border-b w-[180px]">Pickup Time</th>
+                <th className="p-4 text-left font-semibold text-gray-800 border-b w-[320px]">Food Bank</th>
+                <th className="p-4 text-left font-semibold text-gray-800 border-b w-[200px]">Item Description</th>
+                <th className="p-4 text-left font-semibold text-gray-800 border-b w-[150px]">Status</th>
               </tr>
             </thead>
 
             <tbody>
-              {pickups.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="p-6 text-center text-gray-400">
-                    No pickups scheduled yet. Select a location above to get started.
-                  </td>
-                </tr>
-              ) : (
-                pickups.map((p) => (
-                  <tr key={p.id} className="hover:bg-gray-50">
-                    <td className="p-4 border-b text-gray-700">{p.time}</td>
-                    <td className="p-4 border-b text-gray-900 font-medium">{p.partnerName}</td>
-                    <td className="p-4 border-b">
-                      <span className="bg-yellow-50 text-yellow-700 text-xs font-semibold px-3 py-1 rounded-full border border-yellow-200">
-                        {p.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
+          {!mounted ? (
+            <tr>
+              <td colSpan={4} className="p-6 text-center text-gray-400">
+                Loading…
+              </td>
+            </tr>
+          ) : pickups.length === 0 ? (
+            <tr>
+              <td colSpan={4} className="p-6 text-center text-gray-400">
+                No pickups scheduled yet. Select a location above to get started.
+              </td>
+            </tr>
+          ) : (
+            pickups.map((p) => (
+              <tr key={p.id} className="hover:bg-gray-50">
+                <td className="p-4 border-b text-gray-700">
+                  {p.time}
+                  {p.date ? (
+                    <span className="text-gray-400"> · {formatDate(p.date)}</span>
+                  ) : null}
+                </td>
+
+                <td className="p-4 border-b text-gray-900 font-medium">{p.partnerName}</td>
+
+                <td className="p-4 border-b text-gray-700">
+                  {p.itemDescription ? p.itemDescription : <span className="text-gray-400">—</span>}
+                </td>
+
+                <td className="p-4 border-b">
+                  <span className="bg-yellow-50 text-yellow-700 text-xs font-semibold px-3 py-1 rounded-full border border-yellow-200">
+                    {p.status}
+                  </span>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
           </table>
         </div>
       </div>
