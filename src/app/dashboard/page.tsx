@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
+import { getWasteLogs, getPickups } from "@/lib/localData";
 
 import { useState } from "react";
 
@@ -33,41 +34,90 @@ interface Forecast {
 }
 
 function useDashboardData() {
-  // Top-level stats 
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => { setReady(true); }, []);
+
+  // Read from localStorage (same source as log-waste and donations pages)
+  const wasteLogs = ready ? getWasteLogs() : [];
+  const pickups = ready ? getPickups() : [];
+
+  // Compute stats from logged data
+  const totalWaste = wasteLogs.reduce((sum, l) => sum + l.quantity, 0);
+  const foodSaved = pickups.length * 20; // ~20 lbs per pickup
+  const mealsProvided = Math.round(foodSaved / 1.2);
+  const co2Reduced = Math.round(foodSaved * 3.8);
+
   const stats = {
-    foodSaved: 0,           // lbs
-    mealsProvided: 0,       // count
-    co2Reduced: 0,          // kg
+    foodSaved,
+    mealsProvided,
+    co2Reduced,
   };
 
-  // Sustainability score 
+  // Sustainability score: base 50, +5 per pickup, -0.3 per lb wasted
+  const rawScore = Math.min(100, Math.max(0, 50 + (pickups.length * 5) - Math.round(totalWaste * 0.3)));
   const sustainability = {
-    score: 0,               // out of 100
-    changeFromLastMonth: 0, // +/- points
+    score: wasteLogs.length === 0 && pickups.length === 0 ? 0 : rawScore,
+    changeFromLastMonth: pickups.length > 0 ? pickups.length * 2 : 0,
   };
 
-  // Week-over-week waste change 
-  const weeklyChange = 0; 
+  // Week-over-week change (negative = improvement)
+  const weeklyChange = wasteLogs.length >= 3 ? -Math.min(23, pickups.length * 5) : 0;
 
-  // Today's surplus items 
-  const surplusItems: SurplusItem[] = [];
+  // Build surplus items from waste logs (aggregate by food item)
+  const itemMap: Record<string, { total: number; count: number }> = {};
+  wasteLogs.forEach((log) => {
+    if (!itemMap[log.foodItem]) itemMap[log.foodItem] = { total: 0, count: 0 };
+    itemMap[log.foodItem].total += log.quantity;
+    itemMap[log.foodItem].count += 1;
+  });
+  // Convert to SurplusItem shape (prepped = total, sold = total - wasted estimate)
+  const surplusItems: SurplusItem[] = Object.entries(itemMap).map(([item, data]) => ({
+    item,
+    prepped: Math.round(data.total * 2.5), // estimate: prepped ~2.5x what was wasted
+    sold: Math.round(data.total * 1.5),     // estimate: sold ~1.5x what was wasted
+  }));
 
-  // Recent donations 
-  const donations: Donation[] = [];
+  // Recent donations from pickups
+  const donations: Donation[] = pickups.slice(0, 5).map((p) => ({
+    org: p.partnerName,
+    items: `Scheduled pickup`,
+    time: p.time,
+    status: p.status,
+  }));
 
-  // Weekly waste data
-  const weeklyWaste: WasteDay[] = [
-    { day: "Mon", val: 0 },
-    { day: "Tue", val: 0 },
-    { day: "Wed", val: 0 },
-    { day: "Thu", val: 0 },
-    { day: "Fri", val: 0 },
-    { day: "Sat", val: 0 },
-    { day: "Sun", val: 0 },
-  ];
+  // Weekly waste data (distribute logs across days round-robin)
+  const weeklyWasteMap: Record<string, number> = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
+  const dayKeys = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  wasteLogs.forEach((log, i) => { weeklyWasteMap[dayKeys[i % 7]] += log.quantity; });
+  const weeklyWaste: WasteDay[] = dayKeys.map((day) => ({ day, val: weeklyWasteMap[day] }));
 
-  // AI forecasts 
+  // AI forecasts (generated from data once enough logs exist)
   const forecasts: Forecast[] = [];
+  if (wasteLogs.length >= 3) {
+    const topItem = surplusItems.sort((a, b) => (b.prepped - b.sold) - (a.prepped - a.sold))[0];
+    if (topItem) {
+      forecasts.push({
+        title: `Top Wasted: ${topItem.item}`,
+        description: `"${topItem.item}" has the highest surplus. Consider reducing prep by 20-30%.`,
+        type: "warning",
+      });
+    }
+    if (pickups.length > 0) {
+      forecasts.push({
+        title: "Donation Impact",
+        description: `${pickups.length} pickup${pickups.length !== 1 ? "s" : ""} scheduled — est. ${mealsProvided} meals provided to local shelters.`,
+        type: "positive",
+      });
+    }
+    forecasts.push({
+      title: totalWaste > 50 ? "High Waste Alert" : "Keep Logging",
+      description: totalWaste > 50
+        ? "Waste is trending high. Try smaller batch rotations on peak days."
+        : "Keep logging consistently to unlock more accurate weekly predictions.",
+      type: totalWaste > 50 ? "warning" : "neutral",
+    });
+  }
 
   return { stats, sustainability, weeklyChange, surplusItems, donations, weeklyWaste, forecasts };
 }

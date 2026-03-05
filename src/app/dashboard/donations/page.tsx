@@ -123,6 +123,9 @@ export default function DonationsPage() {
         <h1 className="mt-3 text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900">
           Donations
         </h1>
+        <p className="mt-4 text-gray-600 max-w-2xl leading-relaxed">
+          Select a nearby food bank or shelter on the map, choose what you&apos;re donating, and schedule a pickup.
+        </p>
       </div>
 
       {/* Locations + Form */}
@@ -143,11 +146,13 @@ export default function DonationsPage() {
               </h3>
 
               <div className="mt-5 space-y-4">
-                <select
-                  value={selectedPartnerId ?? ""}
-                  onChange={(e) => setSelectedPartnerId(e.target.value || null)}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm"
-                >
+                <div>
+                  <label className="block text-sm font-semibold text-gray-800 mb-1.5">Location</label>
+                  <select
+                    value={selectedPartnerId ?? ""}
+                    onChange={(e) => setSelectedPartnerId(e.target.value || null)}
+                    className={`w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-100 focus:border-green-700 transition ${selectedPartnerId ? "text-gray-900" : "text-gray-400"}`}
+                  >
                   <option value="" disabled>
                     Select a location
                   </option>
@@ -157,12 +162,15 @@ export default function DonationsPage() {
                     </option>
                   ))}
                 </select>
+                </div>
 
-                <select
-                  value={foodType}
-                  onChange={(e) => setFoodType(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm"
-                >
+                <div>
+                  <label className="block text-sm font-semibold text-gray-800 mb-1.5">Food Type</label>
+                  <select
+                    value={foodType}
+                    onChange={(e) => setFoodType(e.target.value)}
+                    className={`w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-100 focus:border-green-700 transition ${foodType ? "text-gray-900" : "text-gray-400"}`}
+                  >
                   <option value="" disabled>
                     Select a type
                   </option>
@@ -172,13 +180,17 @@ export default function DonationsPage() {
                   <option>Dairy</option>
                   <option>Other</option>
                 </select>
+                </div>
 
-                <input
-                  value={item}
-                  onChange={(e) => setItem(e.target.value)}
-                  placeholder="Ex: Pasta"
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm"
-                />
+                <div>
+                  <label className="block text-sm font-semibold text-gray-800 mb-1.5">Item Description</label>
+                  <input
+                    value={item}
+                    onChange={(e) => setItem(e.target.value)}
+                    placeholder="Ex: 20 lbs pasta, soup containers"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-100 focus:border-green-700 transition"
+                  />
+                </div>
 
                 <button
                   onClick={handleSchedulePickup}
@@ -208,13 +220,13 @@ export default function DonationsPage() {
           <table className="w-full border border-gray-200 rounded-xl overflow-hidden text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="p-4 text-left font-semibold border-b">
+                <th className="p-4 text-left font-semibold text-gray-800 border-b">
                   Pickup Time
                 </th>
-                <th className="p-4 text-left font-semibold border-b">
+                <th className="p-4 text-left font-semibold text-gray-800 border-b">
                   Food Bank
                 </th>
-                <th className="p-4 text-left font-semibold border-b">
+                <th className="p-4 text-left font-semibold text-gray-800 border-b">
                   Status
                 </th>
               </tr>
@@ -223,15 +235,15 @@ export default function DonationsPage() {
             <tbody>
               {pickups.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="p-6 text-center text-gray-500">
-                    No pickups scheduled yet.
+                  <td colSpan={3} className="p-6 text-center text-gray-400">
+                    No pickups scheduled yet. Select a location above to get started.
                   </td>
                 </tr>
               ) : (
                 pickups.map((p) => (
                   <tr key={p.id} className="hover:bg-gray-50">
-                    <td className="p-4 border-b">{p.time}</td>
-                    <td className="p-4 border-b">{p.partnerName}</td>
+                    <td className="p-4 border-b text-gray-700">{p.time}</td>
+                    <td className="p-4 border-b text-gray-900 font-medium">{p.partnerName}</td>
                     <td className="p-4 border-b">
                       <span className="bg-yellow-50 text-yellow-700 text-xs font-semibold px-3 py-1 rounded-full border border-yellow-200">
                         {p.status}

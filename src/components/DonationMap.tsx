@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 export type DonationLocation = {
   id: string;
@@ -106,9 +107,13 @@ export default function DonationsMap({
     center?.lng ?? -121.9552,
   ];
 
+  // Unique key forces fresh map instance on remount (fixes hot reload)
+  const [mapKey] = useState(() => Date.now());
+
   return (
     <div className="border border-gray-200 rounded-2xl overflow-hidden h-[320px] bg-gray-50">
       <MapContainer
+        key={mapKey}
         center={fallbackCenter}
         zoom={13}
         scrollWheelZoom={true}
