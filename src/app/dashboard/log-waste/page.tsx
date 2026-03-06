@@ -53,6 +53,21 @@ export default function LogWastePage() {
 
   const [buffetNames, setBuffetNames] = useState<string[]>(() => getSavedBuffetNames());
 
+  const wasteTimeOptions = [
+  "8:00 AM",
+  "9:00 AM",
+  "10:00 AM",
+  "11:00 AM",
+  "12:00 PM",
+  "1:00 PM",
+  "2:00 PM",
+  "3:00 PM",
+  "4:00 PM",
+  "5:00 PM",
+];
+
+const [wasteTime, setWasteTime] = useState(wasteTimeOptions[0]);
+
   // Load from localStorage
   const [logs, setLogs] = useState<WasteLog[]>(() => getWasteLogs());
 
@@ -67,15 +82,12 @@ export default function LogWastePage() {
 
     const newLog: WasteLog = {
       id: Date.now().toString(),
-      buffetName: buffetName.trim() || undefined,
+      buffetName,
       foodItem,
       quantity: Number(quantity),
       wasteType,
       date: logDate,
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      time: wasteTime,
     };
 
     // Save to localStorage
@@ -204,6 +216,23 @@ export default function LogWastePage() {
                   className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm
                     focus:outline-none focus:ring-4 focus:ring-green-100 focus:border-green-700 transition"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                  Time
+                </label>
+                <select
+                  value={wasteTime}
+                  onChange={(e) => setWasteTime(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-green-100 focus:border-green-700 transition"
+                >
+                  {wasteTimeOptions.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="pt-2">

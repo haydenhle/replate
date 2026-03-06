@@ -90,6 +90,21 @@ export default function DonationsPage() {
   const [item, setItem] = useState("");
   const [pickupDate, setPickupDate] = useState(todayISO());
 
+  // pickup time dropdown
+  const pickupTimeOptions = [
+    "8:00 AM",
+    "9:00 AM",
+    "10:00 AM",
+    "11:00 AM",
+    "12:00 PM",
+    "1:00 PM",
+    "2:00 PM",
+    "3:00 PM",
+    "4:00 PM",
+    "5:00 PM",
+  ];
+  const [pickupTime, setPickupTime] = useState(pickupTimeOptions[0]);
+
   // Load from localStorage
   const [pickups, setPickups] = useState<Pickup[]>([]);
   const [mounted, setMounted] = useState(false);
@@ -114,10 +129,7 @@ export default function DonationsPage() {
       buffetLocation: buffetLocation.trim(),
       itemDescription: item.trim(),
       date: pickupDate,
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      time: pickupTime, // NEW
       status: "Scheduled",
     };
 
@@ -132,6 +144,7 @@ export default function DonationsPage() {
     localStorage.setItem("buffetLocation", buffetLocation.trim());
     setItem("");
     setPickupDate(todayISO());
+    setPickupTime(pickupTimeOptions[0]);
   };
 
   return (
@@ -238,6 +251,23 @@ export default function DonationsPage() {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                    Pickup Time
+                  </label>
+                  <select
+                    value={pickupTime}
+                    onChange={(e) => setPickupTime(e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-green-200"
+                  >
+                    {pickupTimeOptions.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <button
                   onClick={handleSchedulePickup}
                   disabled={!selectedPartnerId}
@@ -246,8 +276,7 @@ export default function DonationsPage() {
                       selectedPartnerId
                         ? "bg-green-700 hover:bg-green-800"
                         : "bg-gray-300 cursor-not-allowed"
-                    }`}
-                >
+                    }`}>
                   Schedule Pickup
                 </button>
               </div>

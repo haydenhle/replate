@@ -127,7 +127,7 @@ function useDashboardData() {
     weeklyWasteMap[dayKeys[idx]] += log.quantity;
   });
 
-const weeklyWaste: WasteDay[] = dayKeys.map((day) => ({ day, val: weeklyWasteMap[day] }));
+  const weeklyWaste: WasteDay[] = dayKeys.map((day) => ({ day, val: weeklyWasteMap[day] }));
   
   // AI forecasts
   const forecasts: Forecast[] = [];
@@ -204,7 +204,7 @@ export default function Dashboard() {
 
   const { stats, sustainability, weeklyChange, surplusItems, donations, weeklyWaste, forecasts } = useDashboardData();
   
-   useEffect(() => {
+  useEffect(() => {
     const t = setTimeout(() => setLoading(false), 500);
 
     if (localStorage.getItem("replate_onboarding_just_finished") === "1") {
@@ -233,24 +233,29 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-[#f8f7f4] text-gray-900 selection:bg-green-200">
+      {/* ✅ CHANGED: centered green toast + dim background */}
       {toast && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md">
-          <div className="relative bg-black text-white rounded-xl shadow-2xl px-6 py-5 flex items-center justify-between">
-            
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          {/* dim the rest of the screen */}
+          <div className="absolute inset-0 bg-black/40" />
+
+          {/* centered green popup */}
+          <div className="relative w-[90%] max-w-md bg-green-700 text-white rounded-xl shadow-2xl px-8 py-6 text-center">
             <div className="text-base font-semibold tracking-wide">
               🎉 {toast}
             </div>
 
             <button
               onClick={() => setToast("")}
-              className="ml-4 text-white/70 hover:text-white text-xl font-bold transition"
+              className="absolute top-2 right-3 text-white/80 hover:text-white text-xl font-bold transition"
+              aria-label="Close"
             >
               ×
             </button>
-
           </div>
         </div>
       )}
+
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap');
         .font-serif { font-family: 'DM Serif Display', serif; }
@@ -293,8 +298,6 @@ export default function Dashboard() {
           transition: width 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
       `}</style>
-
-
 
       {/* Hero Banner */}
       <section className="animate-fade-up relative overflow-hidden -mt-10">
@@ -498,9 +501,6 @@ export default function Dashboard() {
           <div className="animate-fade-up delay-6 bg-white border border-gray-100 rounded-xl p-6 shadow-sm p-6 md:p-8">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-body text-sm font-bold text-gray-900">Recent Donations</h3>
-              {/* {donations.length > 0 && (
-                <a href="#" className="font-body text-xs text-green-700 font-semibold hover:underline">View All</a>
-              )} */}
             </div>
             {donations.length > 0 ? (
               <div className="space-y-3">
