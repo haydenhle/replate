@@ -1,5 +1,9 @@
+//Dashboard page layout
+//Wraps dashboard pages and provides shared structure
+
 import Link from "next/link";
 
+//Renders the dashboard layout and displays content of each dashboard page
 export default function DashboardLayout({
   children,
 }: {

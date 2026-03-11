@@ -1,10 +1,13 @@
-// src/app/dashboard/sustainability/page.tsx
+//Sustainability page
+//Displays sustainability score and provide insights
+
 "use client";
 
 import { useState, useEffect } from "react";
 import GaugeClient from "./GaugeClient";
 import { getWasteLogs, getPickups } from "@/lib/localData";
 
+//Determines sustainability category based on score
 function scoreCategory(score: number) {
   if (score >= 78) return "Excellent";
   if (score >= 56) return "Good Standing";
@@ -12,6 +15,7 @@ function scoreCategory(score: number) {
   return "Poor";
 }
 
+//Returns styling classes for category badge
 function categoryPillClasses(category: string) {
   if (category === "Excellent")
     return "bg-green-50 text-green-700 border-green-100";
@@ -22,19 +26,23 @@ function categoryPillClasses(category: string) {
   return "bg-red-50 text-red-700 border-red-100";
 }
 
+//Renders sustainability dashboard showing score, impact metrics, and insights
 export default function SustainabilityPage() {
+  //Ensures data is loaded only after component mounts
   const [ready, setReady] = useState(false);
   useEffect(() => { setReady(true); }, []);
 
+  //Load saved waste logs and donation pickups from localStorage
   const wasteLogs = ready ? getWasteLogs() : [];
   const pickups = ready ? getPickups() : [];
 
+  //Calculate sustainability impact metrics
   const totalWaste = wasteLogs.reduce((sum, l) => sum + l.quantity, 0);
   const foodSaved = pickups.length * 20;
   const mealsProvided = Math.round(foodSaved / 1.2);
   const co2Reduced = Math.round(foodSaved * 3.8);
 
-  // Same formula as overview dashboard
+  //Calculate sustainability score based on donations and waste levels
   const rawScore = Math.min(100, Math.max(0, 50 + (pickups.length * 5) - Math.round(totalWaste * 0.3)));
   const score = wasteLogs.length === 0 && pickups.length === 0 ? 0 : rawScore;
 
@@ -136,6 +144,7 @@ export default function SustainabilityPage() {
   );
 }
 
+//Component for displaying insight rows
 function InsightRow({ title, text }: { title: string; text: string }) {
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5">

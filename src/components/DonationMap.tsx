@@ -1,3 +1,6 @@
+// Donation map
+// Displays nearby donation locations on Leaflet map and lets users select food bank or shelter
+
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -5,6 +8,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
+//Data type for each donation partner shown on the map
 export type DonationLocation = {
   id: string;
   name: string;
@@ -15,6 +19,7 @@ export type DonationLocation = {
   hours?: string;
 };
 
+//Automatically adjusts map view to fit all location markers
 function FitToBounds({
   points,
   enabled,
@@ -35,6 +40,7 @@ function FitToBounds({
   return null;
 }
 
+//Moves the map to selected location and opens its popup
 function FocusSelected({
   selectedId,
   markerRefs,
@@ -73,6 +79,7 @@ function FocusSelected({
   return null;
 }
 
+//Renders donation locations and handles marker interaction
 export default function DonationsMap({
   locations,
   selectedId,
@@ -94,8 +101,10 @@ export default function DonationsMap({
     });
   }, []);
 
+  //Stores references to map markers so selected locations can be focused
   const markerRefs = useRef<Record<string, L.Marker | null>>({});
 
+  //Builds a simple list of map coordinates for fitting bounds
   const points = useMemo(
     () => locations.map((l) => ({ lat: l.lat, lng: l.lng })),
     [locations]

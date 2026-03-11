@@ -1,11 +1,16 @@
+//Onboarding page for new restaurants
+//Collects restaurant information, waste habits, and sustainability goals to initialize user dashboard and account
 "use client";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+//Component that guides users through a setup form
 export default function Onboarding() {
+  //Tracks current step of the onboarding form (1–4)
   const [step, setStep] = useState(1);
   const router = useRouter();
+  //Stores all onboarding form data entered by the user
   const [form, setForm] = useState({
     ownerName: "", email: "", phone: "",
     restaurantName: "", city: "", state: "",
@@ -15,7 +20,9 @@ export default function Onboarding() {
     goals: [] as string[], heardAboutUs: "", additionalNotes: "",
   });
 
+  //Updates a specific form field value
   const set = (field: string, val: string) => setForm((p) => ({ ...p, [field]: val }));
+  //Toggles selected goals in goals array
   const flip = (g: string) => setForm((p) => ({
     ...p, goals: p.goals.includes(g) ? p.goals.filter((x) => x !== g) : [...p.goals, g],
   }));
@@ -23,6 +30,7 @@ export default function Onboarding() {
   const inp = "w-full bg-transparent border border-gray-200 rounded-md px-4 py-3 text-sm font-body text-gray-900 placeholder:text-gray-300 focus:outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700/20 transition";
   const sel = "w-full bg-white border border-gray-200 rounded-md px-4 py-3 text-sm font-body text-gray-900 focus:outline-none focus:border-green-700 focus:ring-1 focus:ring-green-700/20 transition appearance-none";
 
+  //Checks whether required fields are filled before allowing user to continue
   const stepValid = () => {
     if (step === 1) return form.ownerName.trim() && form.email.trim();
     if (step === 2) return form.restaurantName.trim() && form.city.trim();
@@ -300,7 +308,7 @@ export default function Onboarding() {
                 ) : (
                   <button
                     onClick={() => {
-                      // Save basics for prototype login
+                      //Save user information locally for authentication and dashboard setup
                       localStorage.setItem("replate_user_email", form.email.trim());
                       localStorage.setItem("replate_user_pass", "demo123");
                       localStorage.setItem("replate_owner_name", form.ownerName.trim());
@@ -310,6 +318,7 @@ export default function Onboarding() {
                       // Success feedback 
                       localStorage.setItem("replate_logged_in", "true");
                       localStorage.setItem("replate_onboarding_just_finished", "1");
+                      //Redirect user to the dashboard after onboarding is complete
                       router.push("/dashboard");
                     }}
                     className="..."

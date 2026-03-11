@@ -1,30 +1,37 @@
+//Main Nav bar
+//Displays name and links to main pages
+
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
+//Renders the top nav bar
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Hide navbar on auth/onboarding pages
+  // Hide navbar on login and onboarding pages
   const hideNavbar = pathname === "/login" || pathname === "/onboarding";
   if (hideNavbar) return null;
 
+  //Checks which section of site user is currently on
   const isHome = pathname === "/";
   const isAppPage = pathname.startsWith("/dashboard");
 
+  //State for login status and logout confirmation popup
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
+  //Keeps login status synced with localStorage when page loads
   useEffect(() => {
     const sync = () => {
       const v = localStorage.getItem("replate_logged_in");
       setIsLoggedIn(v === "true");
     };
 
-    sync(); // run once on mount
+    sync(); //run once on mount
 
     window.addEventListener("storage", sync);
     window.addEventListener("focus", sync);
@@ -41,6 +48,7 @@ export default function Navbar() {
     };
   }, []);
 
+  //Sends user to login if not logged in, otherwise opens dashboard
   const handleDashboardClick = () => {
     const devBypass = process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === "true";
     const logged = devBypass || isLoggedIn;
@@ -49,10 +57,12 @@ export default function Navbar() {
     else router.push("/dashboard");
   };
 
+  //Opens logout confirmation popup
   const handleLogoutClick = () => {
     setShowLogoutConfirm(true);
   };
 
+  //Logs user out and returns them to login page
   const confirmLogout = () => {
     localStorage.removeItem("replate_logged_in");
     setIsLoggedIn(false);
@@ -60,8 +70,10 @@ export default function Navbar() {
     router.push("/login");
   };
 
+  //Closes logout confirmation popup without logging out
   const cancelLogout = () => setShowLogoutConfirm(false);
 
+  //Returns correct style for active and inactive nav links
   const linkClass = (active: boolean) =>
     `text-[13px] font-medium transition-colors duration-200 ${
       active ? "text-green-700 font-semibold" : "text-gray-400 hover:text-gray-900"

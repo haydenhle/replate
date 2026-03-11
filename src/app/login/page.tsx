@@ -1,9 +1,15 @@
+//Login page
+//Allows users to enter their email and password to access dashboard
+//Credentials are checked against data saved during onboarding using localStorage
+
 "use client";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+//Main login page component
 export default function Login() {
+  //State variables for login form and UI feedback
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -11,12 +17,13 @@ export default function Login() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
 
+  //Handles login form submission and validates user credentials
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setInfo("");
 
-    // basic checks
+    //Basic validation checks for email and password
     if (!email.includes("@")) {
       setError("Invalid email address.");
       return;
@@ -26,7 +33,7 @@ export default function Login() {
       return;
     }
 
-    // only allow login if onboarding saved a user
+    //Retrieve saved user credentials from onboarding
     const savedEmail = localStorage.getItem("replate_user_email") || "";
     const savedPass = localStorage.getItem("replate_user_pass") || "";
 
@@ -39,6 +46,7 @@ export default function Login() {
       setError("Incorrect email or password.");
       return;
     }
+    //Save login state and redirect user to dashboard
     localStorage.setItem("replate_logged_in", "true");
     router.push("/dashboard");
   };

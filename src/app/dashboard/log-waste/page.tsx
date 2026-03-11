@@ -1,3 +1,6 @@
+//Log Waste page
+//Allows user to enter food waste data, including food items, quantities, and other waste details
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,16 +10,19 @@ import {
   type WasteLog,
 } from "@/lib/localData";
 
+//Returns today's date in ISO format
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
+//Converts an ISO date string into a readable date format
 function formatDate(iso?: string) {
   if (!iso) return "";
   const d = new Date(iso + "T00:00:00");
   return d.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" });
 }
 
+//Retrieves previously used buffet names from localStorage
 function getSavedBuffetNames(): string[] {
   if (typeof window === "undefined") return [];
   try {
@@ -28,6 +34,7 @@ function getSavedBuffetNames(): string[] {
   }
 }
 
+//Saves a new buffet name to localStorage so it can appear in future suggestions
 function saveBuffetName(name: string) {
   const trimmed = name.trim();
   if (!trimmed) return;
@@ -36,6 +43,7 @@ function saveBuffetName(name: string) {
   localStorage.setItem("buffetNames", JSON.stringify([trimmed, ...existing]));
 }
 
+//Renders the waste log page and handles form input, submission, and saving waste log data
 export default function LogWastePage() {
   const [mounted, setMounted] = useState(false);
 
@@ -43,6 +51,7 @@ export default function LogWastePage() {
     setMounted(true);
   }, []);
 
+  //Form state variables for the waste log form
   const [buffetName, setBuffetName] = useState("");
   const [foodItem, setFoodItem] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -53,6 +62,7 @@ export default function LogWastePage() {
 
   const [buffetNames, setBuffetNames] = useState<string[]>(() => getSavedBuffetNames());
 
+  //Available time options for when the waste was recorded
   const wasteTimeOptions = [
   "8:00 AM",
   "9:00 AM",
@@ -68,9 +78,10 @@ export default function LogWastePage() {
 
 const [wasteTime, setWasteTime] = useState(wasteTimeOptions[0]);
 
-  // Load from localStorage
+  //Loads previously saved waste logs from localStorage
   const [logs, setLogs] = useState<WasteLog[]>(() => getWasteLogs());
 
+  //Handles form submission and saves a new waste log entry
   const handleSubmit = async () => {
     if (!foodItem || !quantity) {
       alert("Please fill out all fields.");

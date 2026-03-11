@@ -1,3 +1,6 @@
+//Dashboard page
+//Displays food waste statistics, sustainability metrics, and visual charts
+
 "use client";
 import Link from "next/link";
 import { useEffect } from "react";
@@ -7,8 +10,7 @@ import { getWasteLogs, getPickups } from "@/lib/localData";
 
 import { useState } from "react";
 
-// ── All data lives here. Replace with API calls when backend is ready. ──
-
+//All data lives here
 interface SurplusItem {
   item: string;
   prepped: number;
@@ -33,6 +35,7 @@ interface Forecast {
   type: "warning" | "positive" | "neutral";
 }
 
+//Hook that loads data from local storage and computes statistics
 function useDashboardData() {
   const [ready, setReady] = useState(false);
 
@@ -63,7 +66,7 @@ function useDashboardData() {
   function startOfWeek(d: Date) {
     const copy = new Date(d);
     copy.setHours(0, 0, 0, 0);
-    const day = copy.getDay(); // Sun=0
+    const day = copy.getDay();
     const diff = day === 0 ? -6 : 1 - day;
     copy.setDate(copy.getDate() + diff);
     return copy;
@@ -87,7 +90,7 @@ function useDashboardData() {
     changeFromLastMonth: pickups.length > 0 ? pickups.length * 2 : 0,
   };
 
-  // Week-over-week change (negative = improvement)
+  // Week by week change (negative = improvement)
   const weeklyChange = wasteLogs.length >= 3 ? -Math.min(23, pickups.length * 5) : 0;
 
   // Build surplus items from this week's waste logs (aggregate by food item)
@@ -122,8 +125,8 @@ function useDashboardData() {
   wasteLogsThisWeek.forEach((log) => {
     const iso = log.date || todayISO;
     const d = toLocalMidnight(iso);
-    const js = d.getDay(); // Sun=0..Sat=6
-    const idx = js === 0 ? 6 : js - 1; // Mon=0..Sun=6
+    const js = d.getDay();
+    const idx = js === 0 ? 6 : js - 1;
     weeklyWasteMap[dayKeys[idx]] += log.quantity;
   });
 
@@ -159,27 +162,30 @@ function useDashboardData() {
   return { stats, sustainability, weeklyChange, surplusItems, donations, weeklyWaste, forecasts };
 }
 
-// ── Helpers ──
-
+//Formats numbers with commas for display
 function formatNumber(n: number): string {
   return n.toLocaleString();
 }
 
+//Converts date string into readable date
 function formatDateShort(iso?: string): string {
   if (!iso) return "";
   const d = new Date(iso + "T00:00:00");
   return d.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
 }
 
+//Calculates percentage of food sold compared to food prepped
 function getSurplusPct(item: SurplusItem): number {
   if (item.prepped === 0) return 0;
   return Math.round((item.sold / item.prepped) * 100);
 }
 
+//Calculates leftover surplus food
 function getSurplus(item: SurplusItem): number {
   return item.prepped - item.sold;
 }
 
+//Chooses color for waste chart bars based on waste level
 function getBarColor(val: number, max: number): string {
   if (max === 0) return "#d1d5db";
   const pct = val / max;
@@ -188,14 +194,14 @@ function getBarColor(val: number, max: number): string {
   return "#dc2626";
 }
 
+//Chooses progress bar color based on percentage
 function getProgressColor(pct: number): string {
   if (pct >= 85) return "#15803d";
   if (pct >= 75) return "#d97706";
   return "#dc2626";
 }
 
-// ── Component ──
-
+// Renders the main dashboard with statistics, charts, and key metrics
 export default function Dashboard() {
   const router = useRouter();
 
@@ -222,7 +228,7 @@ export default function Dashboard() {
 
 
   useEffect(() => {
-    // TODO: Re-enable when Firebase auth is wired up
+    // TODO: Re enable when Firebase auth is wired up
     // const devBypass = process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === "true";
     // if (!devBypass && !auth?.currentUser) {
     //   router.push("/login");
@@ -233,7 +239,7 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-[#f8f7f4] text-gray-900 selection:bg-green-200">
-      {/* ✅ CHANGED: centered green toast + dim background */}
+      {/* centered toast*/}
       {toast && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
           {/* dim the rest of the screen */}

@@ -1,3 +1,6 @@
+//Donations page
+//Lets users choose nearby food bank or shelter, schedule pickup, and view saved donation pickups
+
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -5,22 +8,27 @@ import dynamic from "next/dynamic";
 import type { DonationLocation } from "../../../components/DonationMap";
 import { savePickup, getPickups, type Pickup } from "@/lib/localData";
 
+//Loads the donation map on the user side only
 const DonationsMap = dynamic(
   () => import("../../../components/DonationMap"),
   { ssr: false }
 );
 
+//Returns today's date in ISO format
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
+//Formats an ISO date string
 function formatDate(iso?: string) {
   if (!iso) return "";
   const d = new Date(iso + "T00:00:00");
   return d.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" });
 }
 
+//Renders donations page and handles pickup scheduling
 export default function DonationsPage() {
+  //Stores nearby food banks and shelters shown on the map
   const locations = useMemo<DonationLocation[]>(
     () => [
       {
@@ -81,6 +89,7 @@ export default function DonationsPage() {
     []
   );
 
+  //Form state for selected donation partner and pickup details
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   const [foodType, setFoodType] = useState("");
   const [buffetLocation, setBuffetLocation] = useState(() => {
@@ -90,7 +99,7 @@ export default function DonationsPage() {
   const [item, setItem] = useState("");
   const [pickupDate, setPickupDate] = useState(todayISO());
 
-  // pickup time dropdown
+  //Available pickup time choices
   const pickupTimeOptions = [
     "8:00 AM",
     "9:00 AM",
@@ -105,18 +114,21 @@ export default function DonationsPage() {
   ];
   const [pickupTime, setPickupTime] = useState(pickupTimeOptions[0]);
 
-  // Load from localStorage
+  //Loads previously scheduled pickups from localStorage
   const [pickups, setPickups] = useState<Pickup[]>([]);
   const [mounted, setMounted] = useState(false);
 
+  //Loads saved pickups after page mounts
   useEffect(() => {
     setPickups(getPickups());
     setMounted(true);
   }, []);
 
+  //Finds full location data for currently selected partner
   const selectedPartner =
     locations.find((l) => l.id === selectedPartnerId) || null;
 
+  //Validates form and saves new scheduled pickup
   const handleSchedulePickup = () => {
     if (!selectedPartner || !foodType || !item || !buffetLocation.trim()) {
       alert("Please complete all fields.");

@@ -1,6 +1,10 @@
+// Home page for Replate website
+// Introduces food waste problem, explains how Replate works, shows the product's impact, and directs users to onboarding or login
+
 "use client";
 import Link from "next/link";
 
+//Renders sections like navbar, problem, solution, progress, impact, and footer
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#f8f7f4] text-gray-900 overflow-x-hidden selection:bg-green-200">
