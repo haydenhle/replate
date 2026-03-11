@@ -29,6 +29,8 @@ This project is built with:
 - **TypeScript**
 - **LocalStorage**
 
+---
+
 ## Getting Started
 
 First install dependencies:
@@ -45,6 +47,9 @@ Open the app in your browser:
 ```bash
 http://localhost:3000
 ```
+
+---
+
 ## Demo Login (Prototype)
 
 After completing onboarding, login credentials are stored locally.
